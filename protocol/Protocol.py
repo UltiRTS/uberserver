@@ -23,7 +23,7 @@ import BridgedClient
 # max. 8 ranks are possible (rank 0 isn't listed)
 # rank, ingame time in hours
 ranks = (5, 15, 30, 100, 300, 1000, 3000)
-
+devIPList=["ip1","ip2"]
 restricted = {
 'disabled':set(),
 'everyone':set([
@@ -595,6 +595,7 @@ class Protocol:
 
 	def _validUsernameSyntax(self, username):
 		# checks if usernames syntax is correct / doesn't contain invalid chars
+		global devIPList
 		if not username:
 			return False, 'Username is blank.'
 		for char in username:
@@ -604,6 +605,8 @@ class Protocol:
 			return False, "Username is too short, must be at least 3 characters."		
 		if len(username) > 20:
 			return False, "Username is too long, max 20 characters."
+		if username.startswith("Autohost") and not (client.ip_address in devIPList):
+			return False, "Invalid username."
 		return True, ""
 
 	def _validLoginSentence(self, sentence):
@@ -924,6 +927,7 @@ class Protocol:
 		return False, ''
 
 	def in_LOGIN(self, client, username, password, cpu='0', local_ip='', sentence_args=''):
+		global devIPList
 		'''
 		Attempt to login the active client.
 
@@ -1015,6 +1019,10 @@ class Protocol:
 		if local_ip.startswith('127.') or not self._validateIP(local_ip):
 			client.local_ip = client.ip_address
 
+		if username.startswith("Autohost") and not (client.ip_address in devIPList):
+			self.out_DENIED(client, username, 'Invalid username.')
+			return
+		
 		if client.ip_address in self._root.trusted_proxies:
 			client.setFlagByIP(local_ip, False)
 	
