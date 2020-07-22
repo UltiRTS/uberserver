@@ -594,8 +594,8 @@ class Protocol:
 		return (self._validLegacyPasswordSyntax(password))
 
 	def _validUsernameSyntax(self, username):
-		# checks if usernames syntax is correct / doesn't contain invalid chars
-		global devIPList
+		
+		
 		if not username:
 			return False, 'Username is blank.'
 		for char in username:
@@ -605,10 +605,10 @@ class Protocol:
 			return False, "Username is too short, must be at least 3 characters."		
 		if len(username) > 20:
 			return False, "Username is too long, max 20 characters."
-		if username.startswith("Autohost") and not (client.ip_address in devIPList):
-			return False, "Invalid username."
+		
 		return True, ""
-
+		
+		
 	def _validLoginSentence(self, sentence):
 		# length checks
 		if sentence.count('\t') != 2: return False
@@ -851,7 +851,10 @@ class Protocol:
 			logging.info('[%s] Registration failed for user <%s>: %s' % (client.session_id, username, reason))
 			client.Send('REGISTRATIONDENIED %s' % reason)
 			return
-
+		global devIPList
+		if username.startswith("Autohost") and not (client.local_ip in devIPList):
+			client.Send('REGISTRATIONDENIED ' )
+			return ##sign in autohost ctl
 		# require a valid looking email address, if we are going to require verification
 		if self.verificationdb.active():
 			good, reason = self.verificationdb.valid_email_addr(email)
@@ -1018,7 +1021,7 @@ class Protocol:
 		client.local_ip = local_ip
 		if local_ip.startswith('127.') or not self._validateIP(local_ip):
 			client.local_ip = client.ip_address
-
+		###dev autohost login ctl##
 		if username.startswith("Autohost") and not (client.ip_address in devIPList):
 			self.out_DENIED(client, username, 'Invalid username.')
 			return
